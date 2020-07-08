@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import "./grid.css";
 
 import { connect } from "react-redux";
 import { setFilms } from "./redux/films/films.action";
 
-function App({ films, setFilms }) {
-  const [query, setQuery] = useState("");
+import { Link, Route } from "react-router-dom";
 
+import movieDetails from "./components/movie-details/movie-details.component";
+import allFilms from "./components/all-films/all-films.component";
+
+const App = ({ films, setFilms, history }) => {
+  const [query, setQuery] = useState("");
+  // set the router for -> search-movie/:query
+  // set the router for details/movie/:id
   useEffect(() => {
     fetch(
-      "https://api.themoviedb.org/3/movie/popular?api_key=e576111d75dee905a12167d6f1387f71&language=en-US&page=1"
+      "https://api.themoviedb.org/3/movie/popular?api_key=e576111d75dee905a12167d6f1387f71"
     )
       .then((res) => res.json())
       .then((res) => setFilms(res.results));
@@ -18,7 +25,7 @@ function App({ films, setFilms }) {
   const searchMovie = () => {
     // doesn't work well w/ spaces
     fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=e576111d75dee905a12167d6f1387f71&language=en-US&query=${query}&page=1&include_adult=false`
+      `https://api.themoviedb.org/3/search/movie?api_key=e576111d75dee905a12167d6f1387f71&language=en-US&query=${query}`
     )
       .then((res) => res.json())
       .then((res) => setFilms(res.results));
@@ -26,38 +33,25 @@ function App({ films, setFilms }) {
 
   return (
     <div className="App">
-      <div>
-        <input
-          type="text"
-          placeholder="Search.."
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button onClick={() => searchMovie()}>S</button>
-      </div>
-      {films.filmsToDisplay
-        ? films.filmsToDisplay.map((film) => {
-            return (
-              <div key={film.id}>
-                <h3>{film.title}</h3>
-                <img
-                  src={`http://image.tmdb.org/t/p/w185//${film.poster_path}`}
-                  alt={film.title}
-                />
-                <p>{film.overview}</p>
-              </div>
-            );
-          })
-        : ""}
+      <header>
+        <h1>Film buff</h1>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search.."
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <button onClick={() => searchMovie()}>S</button>
+        </div>
+      </header>
+      <Route exact path="/" render={history} component={allFilms} />
+      <Route exact path="/details" component={movieDetails} />
     </div>
   );
-}
-
-const mapStateToProps = (state) => ({
-  films: state.filmsToDisplay,
-});
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setFilms: (filmsToDisplay) => dispatch(setFilms(filmsToDisplay)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default connect(null, mapDispatchToProps)(App);
